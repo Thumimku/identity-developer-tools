@@ -101,7 +101,7 @@ export class PreviewManager {
 			async message => {
 				if (message.command == 'login') {
 					// To start the server.
-					new Wso2OAuth(8010).StartProcess();
+					new Wso2OAuth(8010).StartProcess(context);
 
 					// Set the url to extension configuration.
 					vscode.workspace.getConfiguration().update("IAM.URL", message.url);

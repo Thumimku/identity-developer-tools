@@ -6,10 +6,17 @@
 import * as express from "express";
 import { Server } from "http";
 import * as vscode from 'vscode';
+import * as path from 'path';
 const keytar = require('keytar');
 const axios = require('axios');
 import {ServiceTree} from './serviceTree';
+import { FileHandler } from './fileHandler';
+
 import {ScriptLibraryTree} from './scriptLibraryTree';
+
+// Object of the FileHandler.
+const fileHandler = new FileHandler();
+
 export class Wso2OAuth {
 	public app: express.Express;
 	public server: Server;
@@ -19,7 +26,7 @@ export class Wso2OAuth {
 		this.app.use(express.json(), express.urlencoded({ extended: false }));
 	}
 
-	public async StartProcess() {
+	public async StartProcess(context) {
 
 		this.server = this.app.listen(this.port);
 		this.app.get("/oauth", async (req, res) => {
@@ -83,6 +90,13 @@ export class Wso2OAuth {
 					// Show the sucess message in the vscode.
 					vscode.window.showInformationMessage("Successfully Configued your Extension");
 
+					//html path to oauthsuccess.html
+					var htmlFilePath = vscode.Uri.file(
+						path.join( context.extensionPath,'client', 'src', 'ui', 'oauthsuccess.html')
+					);
+					var html = fileHandler.getHTMLCode(htmlFilePath.fsPath);
+					res.send(html);
+
 				}).catch((err) => {
 					// Do somthing
 					console.log(err);
@@ -90,36 +104,13 @@ export class Wso2OAuth {
 					// Show the sucess message in the vscode.
 					vscode.window.showErrorMessage("Recheck Your ClientID and client Secret");
 
-				});
-				// The response html.
-				res.send(`
-						<!doctype html>
-						<html lang="en">
-						<head>
-							<meta charset="utf-8">
-							<meta
-							http-equiv="Content-Security-Policy"
-							content="default-src vscode-resource:; form-action vscode-resource:; frame-ancestors vscode-resource:; img-src vscode-resource: https:; script-src 'self' 'unsafe-inline' vscode-resource:; style-src 'self' 'unsafe-inline' vscode-resource:;"
-							/>
-							<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-						</head>
-						<body>
-							<h1>Success! You may now close the browser.</h1>
-							<style>
-								html, body {
-								background-color: #1a1a1a;
-								color: #c3c3c3;
-								display: flex;
-								justify-content: center;
-								align-items: center;
-								height: 100%;
-								width: 100%;
-								margin: 0;
-								}
-							</style>
-						</body>
-						</html>
-						`);
+					//html path to oauthfailed.html
+					var htmlFilePath = vscode.Uri.file(
+						path.join( context.extensionPath,'client', 'src', 'ui', 'oauthfailed.html')
+					);
+					var html = fileHandler.getHTMLCode(htmlFilePath.fsPath);
+					res.send(html);
+				});				
 
 				// Close the server.		
 				this.server.close();				
